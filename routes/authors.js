@@ -1,6 +1,10 @@
+// routes/Author.js
 import express from 'express';
+import multer from 'multer';
+import { storage } from '../config/cloudinary.js';
 import Author from '../models/Author.js';
 
+const upload = multer({ storage });
 const router = express.Router();
 
 // GET /authors → ritorna la lista degli autori con paginazione
@@ -9,29 +13,27 @@ router.get('/', async (req, res) => {
 
   try {
     const authors = await Author.find()
-      .limit(limit * 1) // Limita il numero di autori per pagina
-      .skip((page - 1) * limit) // Salta i primi N autori in base alla pagina
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
       .exec();
 
-    const count = await Author.countDocuments(); // Conta il totale degli autori
+    const count = await Author.countDocuments();
 
     res.json({
       authors,
-      totalPages: Math.ceil(count / limit), // Calcola il numero totale di pagine
-      currentPage: parseInt(page) // Paginazione corrente
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page)
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET /authors/:id → ritorna un singolo autore in base all'id
+// GET /authors/:id → ritorna un singolo autore
 router.get('/:id', async (req, res) => {
   try {
     const author = await Author.findById(req.params.id);
-    if (!author) {
-      return res.status(404).json({ error: 'Author not found' });
-    }
+    if (!author) return res.status(404).json({ error: 'Author not found' });
     res.json(author);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -52,14 +54,11 @@ router.post('/', async (req, res) => {
 // PUT /authors/:id → modifica un autore
 router.put('/:id', async (req, res) => {
   try {
-    const updatedAuthor = await Author.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!updatedAuthor) {
-      return res.status(404).json({ error: 'Author not found' });
-    }
+    const updatedAuthor = await Author.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+    if (!updatedAuthor) return res.status(404).json({ error: 'Author not found' });
     res.json(updatedAuthor);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -70,15 +69,29 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const deletedAuthor = await Author.findByIdAndDelete(req.params.id);
-    if (!deletedAuthor) {
-      return res.status(404).json({ error: 'Author not found' });
-    }
-    res.status(204).send(); // Nessun contenuto
+    if (!deletedAuthor) return res.status(404).json({ error: 'Author not found' });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH /authors/:id/avatar → upload avatar su Cloudinary
+router.patch('/:id/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    const updatedAuthor = await Author.findByIdAndUpdate(
+      req.params.id,
+      { avatar: req.file.path },
+      { new: true }
+    );
+    if (!updatedAuthor) return res.status(404).json({ error: 'Author not found' });
+    res.json(updatedAuthor);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 export default router;
+
 
 

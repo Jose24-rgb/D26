@@ -1,32 +1,36 @@
+// routes/blogPosts.js
 import express from 'express';
+import multer from 'multer';
+import { storage } from '../config/cloudinary.js';
 import BlogPost from '../models/BlogPost.js';
 
+const upload = multer({ storage });
 const router = express.Router();
 
-// GET /blogPosts → lista completa con paginazione
+// GET /blogPosts → lista con paginazione
 router.get('/', async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
 
   try {
     const posts = await BlogPost.find()
-      .populate('author') // Popola i dettagli dell'autore
-      .limit(limit * 1) // Limita il numero di post per pagina
-      .skip((page - 1) * limit) // Salta i primi N post in base alla pagina
+      .populate('author')
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
       .exec();
 
-    const count = await BlogPost.countDocuments(); // Conta il totale dei post
+    const count = await BlogPost.countDocuments();
 
     res.json({
       posts,
-      totalPages: Math.ceil(count / limit), // Calcola il numero totale di pagine
-      currentPage: parseInt(page) // Paginazione corrente
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page)
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET /blogPosts/:id → ritorna un singolo blog post
+// GET /blogPosts/:id
 router.get('/:id', async (req, res) => {
   try {
     const post = await BlogPost.findById(req.params.id).populate('author');
@@ -37,7 +41,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /blogPosts → crea un nuovo blog post
+// POST /blogPosts
 router.post('/', async (req, res) => {
   try {
     const newPost = new BlogPost(req.body);
@@ -48,17 +52,19 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /blogPosts/:id → modifica il blog post con l'id associato
+// PUT /blogPosts/:id
 router.put('/:id', async (req, res) => {
   try {
-    const updatedPost = await BlogPost.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedPost = await BlogPost.findByIdAndUpdate(req.params.id, req.body, {
+      new: true
+    });
     res.json(updatedPost);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// DELETE /blogPosts/:id → cancella il blog post con l'id associato
+// DELETE /blogPosts/:id
 router.delete('/:id', async (req, res) => {
   try {
     await BlogPost.findByIdAndDelete(req.params.id);
@@ -68,5 +74,21 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// PATCH /blogPosts/:id/cover → upload immagine copertina
+router.patch('/:id/cover', upload.single('cover'), async (req, res) => {
+  try {
+    const updatedPost = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      { cover: req.file.path },
+      { new: true }
+    );
+    if (!updatedPost) return res.status(404).json({ error: 'Post not found' });
+    res.json(updatedPost);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
+
 
