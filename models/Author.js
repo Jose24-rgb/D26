@@ -6,7 +6,8 @@ const AuthorSchema = new mongoose.Schema({
   cognome: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   dataDiNascita: { type: String, required: true },
-  avatar: { type: String, default: "" }
+  avatar: { type: String, default: "" },
+  password: { type: String, required: true, select: false }
 }, {
   timestamps: true
 });

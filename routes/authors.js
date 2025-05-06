@@ -3,6 +3,7 @@ import express from 'express';
 import multer from 'multer';
 import { storage } from '../config/cloudinary.js';
 import Author from '../models/Author.js';
+import bcrypt from 'bcryptjs';
 
 const upload = multer({ storage });
 const router = express.Router();
@@ -43,7 +44,18 @@ router.get('/:id', async (req, res) => {
 // POST /authors → crea un nuovo autore
 router.post('/', async (req, res) => {
   try {
-    const newAuthor = new Author(req.body);
+    const { nome, cognome, email, dataDiNascita, password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newAuthor = new Author({
+      nome,
+      cognome,
+      email,
+      dataDiNascita,
+      password: hashedPassword
+    });
+
     await newAuthor.save();
     res.status(201).json(newAuthor);
   } catch (error) {
