@@ -16,11 +16,17 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:3001/auth/google';
+  };
+
   return (
     <div>
       <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
       <input placeholder="Password" type="password" onChange={(e) => setPassword(e.target.value)} />
       <button onClick={handleLogin}>Login</button>
+      <br />
+      <button onClick={handleGoogleLogin}>Login con Google</button>
     </div>
   );
 }

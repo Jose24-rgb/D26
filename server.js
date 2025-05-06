@@ -5,12 +5,21 @@ import connectDB from './db.js';
 import authorsRouter from './routes/authors.js';
 import blogPostsRouter from './routes/blogPosts.js';
 import authRouter from './routes/auth.js';
-import { authenticateToken } from './middlewares/auth.js'; // <--- IMPORTANTE!
+import passport from 'passport';  // <--- Aggiungi passport
+import session from 'express-session';  // Aggiungi session per Passport
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Route di base per testare il server
 app.get('/', (req, res) => {
