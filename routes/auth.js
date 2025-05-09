@@ -4,12 +4,13 @@ import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import Author from '../models/Author.js';
 import { authenticateToken } from '../middlewares/auth.js';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
 // === LOGIN CON CREDENZIALI EMAIL/PASSWORD ===
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body; 
 
   const author = await Author.findOne({ email }).select('+password');
   if (!author) return res.status(404).json({ error: 'Author not found' });
@@ -31,10 +32,15 @@ router.get('/google', passport.authenticate('google', {
 }));
 
 // Callback di Google per la gestione del risultato
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  const { token, author } = req.user;
-  res.json({ token, author });
-});
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    const { token } = req.user;
+    // Reindirizza al frontend con il token come parametro URL
+    res.redirect(`${process.env.FRONTEND_URL}/home?token=${token}`);
+  }
+);
 
 // === OTTIENI DATI DELL'UTENTE AUTENTICATO ===
 router.get('/me', authenticateToken, async (req, res) => {

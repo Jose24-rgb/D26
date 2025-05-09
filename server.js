@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import "dotenv/config";
@@ -7,6 +8,8 @@ import blogPostsRouter from './routes/blogPosts.js';
 import authRouter from './routes/auth.js';
 import passport from 'passport';  // <--- Aggiungi passport
 import session from 'express-session';  // Aggiungi session per Passport
+import { authenticateToken } from './middlewares/auth.js';
+
 
 const app = express();
 
