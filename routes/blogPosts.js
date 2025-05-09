@@ -29,18 +29,19 @@ router.post('/', upload.single('cover'), async (req, res) => {
   }
 });
 
-// GET /blogPosts → restituisce la lista dei post con paginazione
+// GET /blogPosts → restituisce la lista dei post con filtro titolo + paginazione
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, title } = req.query;
 
   try {
-    const posts = await BlogPost.find()
+    const query = title ? { title: { $regex: title, $options: 'i' } } : {};
+    const posts = await BlogPost.find(query)
       .populate('author')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .exec();
 
-    const total = await BlogPost.countDocuments();
+    const total = await BlogPost.countDocuments(query);
 
     res.json({
       posts,
@@ -51,6 +52,18 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// ✅ GET /authors/:id/blogPosts → tutti i post di un autore specifico
+router.get('/authors/:id/blogPosts', async (req, res) => {
+  try {
+    const posts = await BlogPost.find({ author: req.params.id }).populate('author');
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Commenti
 
 // GET /blogPosts/:id/comments → tutti i commenti del post
 router.get('/:id/comments', async (req, res) => {
@@ -136,6 +149,7 @@ router.delete('/:id/comments/:commentId', async (req, res) => {
 });
 
 export default router;
+
 
 
 
