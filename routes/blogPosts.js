@@ -1,13 +1,14 @@
-// routes/blogPosts.js
 import express from 'express';
 import multer from 'multer';
 import { storage } from '../config/cloudinary.js';
 import BlogPost from '../models/BlogPost.js';
+import Author from '../models/Author.js'; // <-- aggiunto
+import { sendEmail } from '../utils/mailer.js'; // <-- aggiunto
 
 const upload = multer({ storage });
 const router = express.Router();
 
-// POST /blogPosts → crea un nuovo post
+// POST /blogPosts → crea un nuovo post e invia email all'autore
 router.post('/', upload.single('cover'), async (req, res) => {
   try {
     const newPost = new BlogPost({
@@ -23,6 +24,18 @@ router.post('/', upload.single('cover'), async (req, res) => {
     });
 
     await newPost.save();
+
+    // Prendi autore
+    const author = await Author.findById(req.body.author);
+
+    if (author) {
+      await sendEmail(
+        author.email,
+        'Hai pubblicato un nuovo articolo!',
+        `<h2>Complimenti ${author.nome}!</h2><p>Hai appena pubblicato un nuovo post: <strong>${newPost.title}</strong>.</p>`
+      );
+    }
+
     res.status(201).json(newPost);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -62,8 +75,6 @@ router.get('/authors/:id/blogPosts', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// Commenti
 
 // GET /blogPosts/:id/comments → tutti i commenti del post
 router.get('/:id/comments', async (req, res) => {
@@ -149,6 +160,7 @@ router.delete('/:id/comments/:commentId', async (req, res) => {
 });
 
 export default router;
+
 
 
 

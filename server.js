@@ -6,10 +6,10 @@ import connectDB from './db.js';
 import authorsRouter from './routes/authors.js';
 import blogPostsRouter from './routes/blogPosts.js';
 import authRouter from './routes/auth.js';
-import passport from 'passport';  // <--- Aggiungi passport
-import session from 'express-session';  // Aggiungi session per Passport
+import passport from 'passport';
+import session from 'express-session';
 import { authenticateToken } from './middlewares/auth.js';
-
+import { sendEmail } from './utils/mailer.js'; // <-- aggiunto
 
 const app = express();
 
@@ -24,9 +24,24 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Route di base per testare il server
+// ✅ Route di test
 app.get('/', (req, res) => {
   res.send('Hello World!');
+});
+
+// ✅ Route per testare invio email
+app.get('/test-email', async (req, res) => {
+  try {
+    await sendEmail(
+      'tua.email@esempio.com', // 👈 CAMBIA con la tua email reale
+      'Email di prova ✔️',
+      `<h2>Ciao!</h2><p>Questa è una email di test da StriveBlog.</p>`
+    );
+    res.send('✅ Email inviata con successo!');
+  } catch (error) {
+    console.error('Errore invio email:', error);
+    res.status(500).send('❌ Errore invio email');
+  }
 });
 
 app.use('/', authRouter); // Login e /me (pubbliche)
@@ -48,5 +63,6 @@ connectDB();
 app.listen(process.env.PORT, () => {
   console.log("Server is running on port " + process.env.PORT);
 });
+
 
 
