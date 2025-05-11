@@ -1,4 +1,3 @@
-// Front/src/components/AddPost.jsx
 import { useState } from 'react';
 import api from '../api';
 
