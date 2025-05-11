@@ -1,4 +1,4 @@
-// src/components/Login.jsx
+// Front/src/components/Login.jsx
 import { useState } from 'react';
 import api from '../api';
 

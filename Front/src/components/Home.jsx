@@ -1,4 +1,4 @@
-// src/components/Home.jsx
+// Front/src/components/Home.jsx
 import { useEffect, useState } from 'react';
 import api from '../api';
 import AuthorActions from './AuthorActions';

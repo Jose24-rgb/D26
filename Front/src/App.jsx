@@ -1,4 +1,4 @@
-// src/App.jsx
+//Front/src/App.jsx
 import Register from './components/Register';
 import Login from './components/Login';
 import Home from './components/Home';
